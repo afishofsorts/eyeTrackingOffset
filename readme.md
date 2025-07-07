@@ -1,0 +1,1 @@
+Algorithm to correct translationally offset eye tracking data for a simulated car driving study conducted by the Children's Hospital of Philadelphia. All work was done under the mentorship of Thomas Seacrist in Summer 2025 with funding received from the NSF.
