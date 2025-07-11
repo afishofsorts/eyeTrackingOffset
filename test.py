@@ -1,12 +1,14 @@
-from scipy import stats
-import matplotlib.pyplot as plt
 import numpy as np
+import dcor
+import matplotlib.pyplot as plt
 
-r = stats.norm.rvs(size=1000)
-r2 = stats.norm.rvs(size=1000)
+covar = np.array([[1, 3/5], [3/5, 2]])
+mean = np.array([1, 1])
+a = np.random.multivariate_normal(mean, covar, size=1000)
+b = np.random.multivariate_normal(mean, covar, size=1000)
 
-errDist = np.sqrt(r**2+r2**2)
-pval = stats.kstest(errDist, stats.rayleigh.cdf).pvalue
-print(pval)
-plt.hist(errDist)
+print(dcor.energy_distance(a, b))
+
+plt.plot(a[:, 0], a[:, 1], 'o')
+plt.plot(b[:, 0], b[:, 1], 'o')
 plt.show()
