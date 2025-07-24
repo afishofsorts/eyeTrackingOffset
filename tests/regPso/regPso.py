@@ -23,14 +23,14 @@ for i in range(len(dir_list)-1):
     if calList[i, 1]=='Good' or calList[i, 1]=='Offset':
         inds[i] = 1
 
-coms = np.zeros((6, 2, int(sum(inds)))) # array initialization
+psoPeaks = np.zeros((6, 2, int(sum(inds)))) # array initialization
 k=0 # indexing for errDist
 for i in range(len(dir_list)-1):
     if inds[i]==1: # only performs correction for data marked as Good
         data = pandas.read_csv(mvp + '\\' + str(dir_list[i+1])).to_numpy()
         newData = cb.dataClean(data) # removes data  marked as invalid
-        comWeights, coms[:, :, k] = cb.regPso(newData) # computes regional COMs
+        psoWeights, psoPeaks[:, :, k] = cb.regPso(newData) # computes regional COMs
         k=k+1
 
-np.save('tests\\regPso\\saved\\pso_coms.npy', coms)
+np.save('tests\\regPso\\saved\\pso_peaks.npy', psoPeaks)
 

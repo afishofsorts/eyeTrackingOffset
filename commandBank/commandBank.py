@@ -225,3 +225,37 @@ def SPCorr(data):
     corr = spCenter - speedomPeak - genCOM
     
     return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+
+def meanPeakCorr(psoPeaks, difs, vars):
+    return np.diag((psoPeaks-difs).T @ (1/vars)/sum(1/vars))
+
+# Corrects eye tracking data offset using pso optimized density peak for the speedometer
+def SPRVCorr(data):
+    # INPUTS:
+    # data:         Array series of 6 dimensional data points
+    # OUTPUTS:
+    #               List of two arrays: array series of 2 dimensional correct data and boolean value indicating if
+    #               the road to speedometer vector if an outlier
+    
+    validData = dataClean(data) # does no region cleaning is globalReg is the default 0 matrix
+
+    n = len(validData[:, 4])
+    genCOM = comGen(validData[:, 4:])
+
+    dispMatr = np.ones(len(validData[:, 0]))[None].T @ genCOM[None]
+    validData[:, 4:] = validData[:, 4:] - dispMatr # centers all eye tracking points
+
+    speedomData = dataClean(validData, newSpeedom)
+    validData[:, 3] = np.ones(n)
+    roadData = dataClean(validData, newRoad)
+    validData[:, 3] = np.ones(n)
+    rvData = dataClean(validData, newRv)
+
+    # calculates regional Peaks
+    speedomPeak = psoL2(newSpeedom, speedomData)
+    roadPeak = psoL2(newRoad, roadData)
+    rvPeak = psoL2(newRv, rvData)
+
+    corr = spCenter - speedomPeak - genCOM
+    
+    return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)

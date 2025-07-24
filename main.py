@@ -7,16 +7,19 @@ import numpy as np
 # GENERIC SKELETON FOR CORRECTING OFFSET DATA #
 ###############################################
 
-rootDir = ''
-dir_list = os.listdir(dir)
+rootDir = 'saved\\Primary Care Calibration\\Time-Series Data'
+dir_list = os.listdir(rootDir)
 
-isOutlier = np.empty(len(dir_list)-1)
-for i in range(len(dir_list)-1):
-    data = pandas.read_csv(rootDir + '\\' + str(dir_list[i+1])).to_numpy()
+isOutlier = np.empty(len(dir_list))
+for i in range(len(dir_list)):
+    data = pandas.read_csv(rootDir + '\\' + str(dir_list[i])).to_numpy()
     
-    corrData, isOutlier[i] = cb.SPCorr(data)
-    filename = ''
-    np.save('saved\\corrData\\corr_' + filename, corrData)
+    data[:, 4:], isOutlier[i] = cb.SPCorr(data)
+    filename = str(dir_list[i])
+
+    df = pandas.DataFrame(data)
+    df.to_csv('saved\\corrData\\corr_' + filename)
+
 
 np.save('saved\\corrData\\outlier_list', isOutlier)
     
