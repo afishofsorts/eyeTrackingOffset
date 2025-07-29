@@ -17,6 +17,8 @@ for i in range(len(dir_list)-1):
     if dataLen1 == dataLen2:
         isDupe[i] = 1
 
+print(sum(isDupe))
+
 
 
 

@@ -7,19 +7,17 @@ import numpy as np
 # GENERIC SKELETON FOR CORRECTING OFFSET DATA #
 ###############################################
 
+# file directory for offset data
 rootDir = 'saved\\Primary Care Calibration\\Time-Series Data'
-dir_list = os.listdir(rootDir)
+dir_list = os.listdir(rootDir) # grabs list of file names
 
 isOutlier = np.empty(len(dir_list))
 for i in range(len(dir_list)):
     data = pandas.read_csv(rootDir + '\\' + str(dir_list[i])).to_numpy()
     
-    data[:, 4:], isOutlier[i] = cb.SPCorr(data)
-    filename = str(dir_list[i])
+    data[:, 4:], isOutlier[i] = cb.SPRVCorr(data) # corrects offset data using rearview and speedometer density peaks
 
     df = pandas.DataFrame(data)
-    df.to_csv('saved\\corrData\\corr_' + filename)
-
+    df.to_csv('saved\\corrData\\corr_' + str(dir_list[i]))
 
 np.save('saved\\corrData\\outlier_list', isOutlier)
-    

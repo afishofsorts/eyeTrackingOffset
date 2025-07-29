@@ -11,11 +11,12 @@ from scipy import stats
 ##############################################
 
 spCenter = np.array([920, 312]) # coordinates of speedometer center
+rvCenter = np.array([1550, 660])
 
 # xy pixel boundaries for each pertinent region of the screen
 sm = np.array([[0, 550], [200, 600]]) # side mirror
 speedom = np.array([[820, 1000], [200, 400]]) # speedometer
-rv = np.array([[1250, 1900], [540, 800]]) # rearview
+rv = np.array([[1300, 1900], [570, 800]]) # rearview
 road = np.array([[700, 1100], [400, 650]])
 panel = np.array([[1240, 1640], [0, 270]]) # bottom right console
 
@@ -25,10 +26,10 @@ comAvgs, comVars = np.load('saved\\com_stats.npy')
 # shifts region boundary the same amount as general COM centering to the origin and adds 2 standard deviations of padding
 def regConv(region, comAvgs):
     # INPUTS:
-    # region:       2 by 2 array with x bounds in first row and y bounds in second, first column is minimums
-    # comAvgs:      1 by 2 array
+    # region:       2x2 array with x bounds in first row and y bounds in second, first column is minimums
+    # comAvgs:      2D array
     # OUTPUTS:
-    # newReg:       2 by 2 array
+    # newReg:       2x2 array
 
     newReg = region - (np.ones(2)[None].T @ comAvgs[None]).T
     return newReg
@@ -43,10 +44,10 @@ newPanel = regConv(panel, comAvgs)
 # returns data points that are within a given region and have been marked as valid
 def dataClean(data, reg=np.array([[0, 0], [0, 0]])):
     # INPUTS:
-    # data:         Array series of 6 dimensional data points
-    # reg:          2 by 2 array with x bounds in first row and y bounds in second, first column is minimums
+    # data:         Array with rows of 6D data points
+    # reg:          2x2 array with x bounds in first row and y bounds in second, first column is minimums
     # OUTPUTS:
-    # validData:    Array series of 6 dimensional data points that are marked as valid and within reg
+    # validData:    Array with rows of 6D data points that are marked as valid and within reg
 
     if not (reg==np.array([[0, 0], [0, 0]])).all(): # checks if any region boundary has been input
         for l in range(len(data[:, 0])): # if so, marks data outside this region as invalid
@@ -65,8 +66,8 @@ def dataClean(data, reg=np.array([[0, 0], [0, 0]])):
 # produces COM for 2D data set, weighted only if weight array is provided
 def comGen(data, weights=np.array([])):
     # INPUTS:
-    # data:         Array series of 6 dimensional data points
-    # weights:      Array of weights for each data point
+    # data:         Array with rows of 6D dimensional data points
+    # weights:      1D array of weights for each data point
     # OUTPUTS:
     #               2D array of the data's COM
 
@@ -79,14 +80,14 @@ def comGen(data, weights=np.array([])):
 def boxCircFunc(p, data):
     # INPUTS:
     # p:            Center of 100 pixel ball used to calculate density
-    # data:         Array series of 6 dimensional data points
+    # data:         Array with rows of 6D data points
     # OUTPUTS:
     #               Negative of the density
 
     n = len(data[:, 0])
     dispMatr = np.ones(shape=(n))[None].T @ p[None]
     newData = data-dispMatr
-    inds = np.where(np.logical_and(abs(newData[:, 0])<100, abs(newData[:, 1])<100))[0] # first partitions data within 100 by 100 box centered at p
+    inds = np.where(np.logical_and(abs(newData[:, 0])<50, abs(newData[:, 1])<50))[0] # first partitions data within 100 by 100 box centered at p
     l = len(inds)
     if l<10:
         return 99999999 # don't want to incentivize minimization of r over maximization of n
@@ -95,7 +96,7 @@ def boxCircFunc(p, data):
         p = 0
         for i in range(l):
             r2 = newData[inds[i], :] @ newData[inds[i], :]
-            if r2 < 10000: # only considers data within 100 pixels by radius
+            if r2 < 2500: # only considers data within 50 pixels by radius
                 sum = sum + r2
                 p = p + 1
         if p == 0:
@@ -106,8 +107,9 @@ def boxCircFunc(p, data):
 # Performs particle swarm optimization density peak estimate within some subset of data
 def psoL2(region, data):
     # INPUTS:
-    # region:       2 by 2 array with x bounds in first row and y bounds in second, first column is minimums
-    # data:         Array series of 6 dimensional data points
+    # region:       2x2 array with x bounds in first row and y bounds in second, 
+    #               first column is minimums and second is maximums
+    # data:         Array with rows of 6D data points
     # OUTPUTS:
     #               Numerical estimate of the local minimum
 
@@ -121,7 +123,7 @@ def psoL2(region, data):
 # Performs pso optimization in 5 relevant regions of eye tracking data
 def regPso(data, globalReg=np.array([[0, 0], [0, 0]]), isStandard=False):
     # INPUTS:
-    # data:         Array series of 6 dimensional data points
+    # data:         Array with rows of 6D data points
     # OUTPUTS:
     #               List of two arrays: number of data points for each region and the estimated density peak in those regions
     
@@ -159,10 +161,10 @@ def regPso(data, globalReg=np.array([[0, 0], [0, 0]]), isStandard=False):
 # given a reference point, returns the differences between that and a list of points
 def relVectors(ref, rest):
     # INPUTS:
-    # ref:          1 by 2 reference array
-    # rest:         Array series of 2 dimensional points to be compared to ref
+    # ref:          2D reference point
+    # rest:         Array with rows of 2D points to be compared to ref
     # OUTPUTS:
-    # difs:         Array series of 2 dimensional vectors from ref to each point in rest
+    # difs:         Array with rows of 2D vectors from ref to each point in rest
     
     difs = np.zeros((len(rest)+1, 2)) # reserves the first vector as 0 for distance relative to itself
     for i in range(len(rest)):
@@ -172,19 +174,19 @@ def relVectors(ref, rest):
 # Trnslationally shifts 3 dimensional data set
 def translate(vec, data):
     # INPUTS:
-    # vec:          1 by 2 array for translation 
-    # data:         Array series of 2 dimensional data points
+    # vec:          1x2 array for translation 
+    # data:         Array with rows of 2D data points
     # OUTPUTS:
-    #               Translated data
+    #               Array with rows of 2D translated data points
     
     return data + vec[None].repeat(len(data[:, 0]), 0)
 
 # Checks if a 2 dimensional vector's probability of being drawn from a multivariate normal distribution is less than some benchmark p
 def isOutlier(x, mean, covar, p=0.05):
     # INPUTS:
-    # x:        1 by 2 array of sample point
-    # mean:     1 by 2 array of multivariate normal mean
-    # covar:    2 by 2 array of multivariate normal covariance
+    # x:        1x2 array of sample point
+    # mean:     1x2 array of multivariate normal mean
+    # covar:    2x2 array of multivariate normal covariance
     # p:        Probability cutoff for outliers
     # OUTPUTS:
     #           Boolean value indicating if the sample point had a less than p chance of being drawn
@@ -201,7 +203,7 @@ mean = np.load('saved\\pso_SPRD_mean.npy') # measured mean of difference between
 # Corrects eye tracking data offset using pso optimized density peak for the speedometer
 def SPCorr(data):
     # INPUTS:
-    # data:         Array series of 6 dimensional data points
+    # data:         Array with rows of 2D data points
     # OUTPUTS:
     #               List of two arrays: array series of 2 dimensional correct data and boolean value indicating if
     #               the road to speedometer vector if an outlier
@@ -226,18 +228,62 @@ def SPCorr(data):
     
     return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
 
-def meanPeakCorr(psoPeaks, difs, vars):
-    return np.diag((psoPeaks-difs).T @ (1/vars)/sum(1/vars))
+# Calculates the most likely position a series translationally offset normal distribution measurements
+# were in originally
+def meanPeakCorr(avgPeaks, difs, vars):
+    # INPUTS:
+    # avgPeaks: Array with rows of 2D density peak reference points used to corrcect to
+    # difs:     2D array of differences between the measured density peaks, not avgPeaks.
+    #           Zero entry indicates the density peak every other peak is relative to
+    # vars:     x and y variances of each density peak
+    # OUTPUTS:
+    #           2D array of most likely position of zero entry in difs
+
+    return np.diag((avgPeaks-difs).T @ (1/vars)/sum(1/vars))
+
+# Finds the number of points with a box of width 2*w centered on 2D point p
+def nCheck(p, data, w):
+    # INPUTS:
+    # p:        2D array for the center of box
+    # data:     Array series of 6 dimensional data points
+    # w:        Scalar for half the width of the box
+    # OUTPUTS:
+    #           Number of points within box centered on p
+
+    n = len(data[:, 0])
+    dispMatr = np.ones(shape=(n))[None].T @ p[None] 
+    newData = data-dispMatr # centers p at origin
+    inds = np.where(np.logical_and(abs(newData[:, 0])<w, abs(newData[:, 1])<w))[0] # grabs data within w of either component of p
+    return len(inds)
+
+# Checks if rearview density peak is eligible to be used for offset correction
+def rvCheck(rdPeak, rvPeak, speedomPeak, data):
+    # INPUTS:
+    # rdPeak:       2D array of road density peak
+    # rvPeak:       2D array of rearview density peak
+    # speedomPeak:  2D array of speedometer density peak
+    # OUTPUTS:
+    #               Boolean value
+
+    RVRD = rvPeak - rdPeak
+    RVSP = rvPeak - speedomPeak
+    rdCheck = (475<RVRD[0]<700 and 75<RVRD[1]<185) # checks if road to rearview vector is excessive
+    speedomCheck = (550<RVSP[0]<750 and 275<RVSP[1]<400)# checks if speedometer to rearview vector is excessive
+    isN = nCheck(rvPeak, data, 50)>30 # checks if the number of data points within 100 pixel box is greater than 30
+    return rdCheck and speedomCheck and isN
+
+# loads upper limit of variances for speedometer and rearview density peaks
+peakVars = np.array([np.diag(np.load('saved\\pso_SPRD_covar.npy')), np.diag(np.load('saved\\pso_RVRD_covar.npy'))])
 
 # Corrects eye tracking data offset using pso optimized density peak for the speedometer
 def SPRVCorr(data):
     # INPUTS:
-    # data:         Array series of 6 dimensional data points
+    # data:         Array with rows of 2D data points
     # OUTPUTS:
     #               List of two arrays: array series of 2 dimensional correct data and boolean value indicating if
     #               the road to speedometer vector if an outlier
     
-    validData = dataClean(data) # does no region cleaning is globalReg is the default 0 matrix
+    validData = dataClean(data) # does no region cleaning if globalReg is the default 0 matrix
 
     n = len(validData[:, 4])
     genCOM = comGen(validData[:, 4:])
@@ -256,6 +302,49 @@ def SPRVCorr(data):
     roadPeak = psoL2(newRoad, roadData)
     rvPeak = psoL2(newRv, rvData)
 
-    corr = spCenter - speedomPeak - genCOM
+    # if rearview density peak isn't an outlier or lacks enough points, corrects based off of both it and speedometer
+    if rvCheck(roadPeak, rvPeak, speedomPeak, rvData[:, 4:]): 
+        corrX1 = meanPeakCorr(np.array([spCenter, rvCenter]), np.array([[0, 0], rvPeak-speedomPeak]), peakVars)
+        return translate(corrX1-speedomPeak-genCOM, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+    else: # otherwise corrects just off of speedometer
+        corr = spCenter - speedomPeak - genCOM
+        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+
+# Plots eye tracking data and other relevant points
+def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.array([0, 0]), dir='',title='', save=True, standards=False):
+    # INPUTS:
+    # data:         Array with rows of 2D data points
+    # filename:     String for name of saved image
+    # genCOM:       2D array of center of mass of data, if zero not plotted
+    # psoPeaks:     Array with rows of 2D density peaks, if zero not plotted
+    # dir:          String of directory to save file to
+    # title:        String of title to be drawn on plot
+    # save:         Boolean indicating if the image should be saved
+    # standards:    Boolean indicating if speedometer and rearview reference points should be plotted
+
+    plt.rcParams["figure.figsize"] = [19.00, 9.0]
+    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene Cropped.jpg")
+    fig, ax = plt.subplots()
+    im = ax.imshow(img, extent=[0, 1920, 0, 1080])
+    plt.plot(data[:, 0], data[:, 1], 'o', mec = 'black', mew='0.8', markersize=4, color='fuchsia', label='Eye Tracking Data')
+    plt.xlim(0, 1920); plt.ylim(0, 1080)
+    plt.title(title)
+    plt.xlabel('x position (pixels)'); plt.ylabel('y position (pixels)')
+
+    if not np.all(genCOM==np.array([0, 0])):
+        plt.plot(genCOM[0], genCOM[1], '*', mec='black', color='gold', markersize=25, label='COM')
+    if not np.all(psoPeaks==np.array([0, 0])):
+        plt.plot(psoPeaks[0, 0], psoPeaks[0, 1], 'd', color='limegreen', mec='black', markersize=13, label='Density Peaks')
+        for i in range(len(psoPeaks[:, 0])-1):
+            plt.plot(psoPeaks[i+1, 0], psoPeaks[i+1, 1], 'd', color='limegreen', mec='black', markersize=13)
+    if standards:
+        print('yes')
+        plt.plot(spCenter[0], spCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0', label='Standards')
+        plt.plot(rvCenter[0], rvCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0')
     
-    return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+    handles, labels = ax.get_legend_handles_labels()
+    plt.legend(handles, labels)
+
+    if save:
+        plt.savefig(dir + '\\' + filename, bbox_inches='tight', pad_inches=0.5)
+        plt.close()

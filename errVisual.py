@@ -14,6 +14,7 @@ plt.rcParams["figure.figsize"] = [20.00, 10.0]
 img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene Cropped.jpg")
 fig, ax = plt.subplots()
 im = ax.imshow(img, extent=[0, 1920, 0, 1080])
+plt.plot(1550, 660, 'o', color='r')
 
 
 plt.plot(cb.spCenter[0]-10, cb.spCenter[1]-10, 'o', mec='black', markersize=7, color='fuchsia')

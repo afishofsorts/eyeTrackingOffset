@@ -14,23 +14,13 @@ from commandBank import commandBank as cb
 # grabbing directory names for each manually verified file
 mvp = 'saved\\Primary Care Calibration\\Manually Validated Participants'
 dir_list = os.listdir(mvp)
-# tags for each participant's data
-calList = pandas.read_excel(mvp + '\\Calibration List.xlsx').to_numpy()
 
-# marks which data sets are Good with a 1
-inds = np.zeros(len(dir_list)-1)
-for i in range(len(dir_list)-1):
-    if calList[i, 1]=='Good' or calList[i, 1]=='Offset':
-        inds[i] = 1
+psoPeaks = np.zeros((6, 2, len(dir_list)-1)) # array initialization
 
-psoPeaks = np.zeros((6, 2, int(sum(inds)))) # array initialization
-k=0 # indexing for errDist
 for i in range(len(dir_list)-1):
-    if inds[i]==1: # only performs correction for data marked as Good
-        data = pandas.read_csv(mvp + '\\' + str(dir_list[i+1])).to_numpy()
-        newData = cb.dataClean(data) # removes data  marked as invalid
-        psoWeights, psoPeaks[:, :, k] = cb.regPso(newData) # computes regional COMs
-        k=k+1
+    data = pandas.read_csv(mvp + '\\' + str(dir_list[i+1])).to_numpy()
+    newData = cb.dataClean(data) # removes data  marked as invalid
+    psoWeights, psoPeaks[:, :, i] = cb.regPso(newData) # computes regional COMs
 
 np.save('tests\\regPso\\saved\\pso_peaks.npy', psoPeaks)
 
