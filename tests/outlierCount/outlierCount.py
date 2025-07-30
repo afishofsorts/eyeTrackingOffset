@@ -28,7 +28,7 @@ for i in range(len(dir_list)-1):
     if any(dir_list[i+1][:-4] == manualMiscal):
         manualInds[i] = 1
 
-isOutliers = np.load('tests\\outlierCount\\saved\\peak_outliers.npy') # boolean array for speedometer to road vector outlier s
+isOutliers = np.load('tests\\outlierCount\\saved\\peak_outliers.npy') # boolean array for speedometer to road vector outliers
 
 andOut = np.zeros(len(dir_list)-1)
 orOut = np.zeros(len(dir_list)-1)
@@ -46,7 +46,7 @@ print(manualInds - inds)
 # checking if outlier check changes much about existing ML check
 print(orOut-andOut)
 
-print(1/len(inds)) # percentage of false positives and fals negatives since only recorded 1 for both
+print(1/len(inds)) # percentage of false positives and false negatives since only recorded 1 for both
 print(sum(orOut)/len(inds)) # amount of data to be marked as miscalibrated by either ML or vector outlier
 
 # so around 1.5 percent of good data will be tossed and 1.5 percent bad will make it in

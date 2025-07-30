@@ -87,7 +87,7 @@ def boxCircFunc(p, data):
     n = len(data[:, 0])
     dispMatr = np.ones(shape=(n))[None].T @ p[None]
     newData = data-dispMatr
-    inds = np.where(np.logical_and(abs(newData[:, 0])<50, abs(newData[:, 1])<50))[0] # first partitions data within 100 by 100 box centered at p
+    inds = np.where(np.logical_and(abs(newData[:, 0])<50, abs(newData[:, 1])<100))[0] # first partitions data within 100 by 100 box centered at p
     l = len(inds)
     if l<10:
         return 99999999 # don't want to incentivize minimization of r over maximization of n
@@ -96,7 +96,7 @@ def boxCircFunc(p, data):
         p = 0
         for i in range(l):
             r2 = newData[inds[i], :] @ newData[inds[i], :]
-            if r2 < 2500: # only considers data within 50 pixels by radius
+            if r2 < 10000: # only considers data within 50 pixels by radius
                 sum = sum + r2
                 p = p + 1
         if p == 0:
@@ -323,7 +323,7 @@ def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.arr
     # standards:    Boolean indicating if speedometer and rearview reference points should be plotted
 
     plt.rcParams["figure.figsize"] = [19.00, 9.0]
-    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene Cropped.jpg")
+    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene (No Border).jpg")
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=[0, 1920, 0, 1080])
     plt.plot(data[:, 0], data[:, 1], 'o', mec = 'black', mew='0.8', markersize=4, color='fuchsia', label='Eye Tracking Data')
@@ -338,7 +338,6 @@ def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.arr
         for i in range(len(psoPeaks[:, 0])-1):
             plt.plot(psoPeaks[i+1, 0], psoPeaks[i+1, 1], 'd', color='limegreen', mec='black', markersize=13)
     if standards:
-        print('yes')
         plt.plot(spCenter[0], spCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0', label='Standards')
         plt.plot(rvCenter[0], rvCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0')
     
