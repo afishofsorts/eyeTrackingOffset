@@ -50,6 +50,18 @@ plt.plot(difs[5, 0, :], difs[5, 1, :], 'o', color='#8c564b')
 plt.title('Speedometer to Road Density Peak Vector')
 plt.xlabel('x (pixels)'); plt.ylabel('y (pixels)')
 plt.savefig('tests\\difVectors\\saved\\dif_spread_SPRD')
+plt.close()
+
+plt.plot(difs[4, 0, :], difs[4, 1, :], 'o', color='tab:purple')
+plt.title('Speedometer to Rearview Peak Vector')
+plt.xlabel('x (pixels)'); plt.ylabel('y (pixels)')
+plt.savefig('tests\\difVectors\\saved\\dif_spread_SPRV')
+plt.close()
+
+plt.plot(difs[7, 0, :], difs[7, 1, :], 'o', color='tab:gray')
+plt.title('Road to Rearview Density Peak Vector')
+plt.xlabel('x (pixels)'); plt.ylabel('y (pixels)')
+plt.savefig('tests\\difVectors\\saved\\dif_spread_RDRV')
 
 
 

@@ -28,28 +28,30 @@ for i in range(len(dir_list)-1):
     if any(dir_list[i+1][:-4] == manualMiscal):
         manualInds[i] = 1
 
-isOutliers = np.load('tests\\outlierCount\\saved\\peak_outliers.npy') # boolean array for speedometer to road vector outlier s
+isOutliers = np.load('tests\\rearviewNudge\\saved\\data\\is_outlier.npy') # boolean array for speedometer to road vector outliers
 
-andOut = np.zeros(len(dir_list)-1)
 orOut = np.zeros(len(dir_list)-1)
+k=0
 for i in range(len(inds)):
-    if isOutliers[i] == 1 and inds[i] == 1:
-        andOut[i] = 1
-    if isOutliers[i] == 1 or inds[i] == 1:
-        orOut[i] = 1
+    if inds[i] == 1:
+        orOut[i]=1
+    else:
+        if isOutliers[k] == 1:
+            orOut[i]=1
+        k = k + 1
 
 # -1 is false negative, 0 is true positive or true negative, and 1 is false positive
-print(manualInds - orOut) 
-print(manualInds - isOutliers)
-print(manualInds - inds)
+print(manualInds - orOut)
 
-# checking if outlier check changes much about existing ML check
-print(orOut-andOut)
-
-print(1/len(inds)) # percentage of false positives and fals negatives since only recorded 1 for both
-print(sum(orOut)/len(inds)) # amount of data to be marked as miscalibrated by either ML or vector outlier
-
-# so around 1.5 percent of good data will be tossed and 1.5 percent bad will make it in
-
+FPs = np.where(manualInds - orOut == 1)[0]
+FNs = np.where(manualInds - orOut == -1)[0]
+Ns = np.where(orOut == 1)[0]
+Ps = np.where(orOut == 0)[0]
+print('Percentage of False Positives: ' + str(len(FPs)/len(inds))) 
+print('Percentage of False Negatives: ' + str(len(FNs)/len(inds))) 
+print('Percentage of True Positives: ' + str((len(Ps)-len(FPs))/len(inds))) 
+print('Percentage of True Negatives: ' + str((len(Ns)-len(FNs))/len(inds))) 
+print('Percentage Marked as Miscal: ' + str(sum(orOut)/len(inds))) # amount of data to be marked as miscalibrated by either ML or vector outlier
+print(1-sum(manualInds)/len(inds))
 
 

@@ -10,7 +10,7 @@ from scipy import stats
 # LIST OF INTERNAL COMMANDS FOR THIS PROJECT #
 ##############################################
 
-spCenter = np.array([920, 312]) # coordinates of speedometer center
+spCenter = np.array([920, 330]) # coordinates of speedometer center
 rvCenter = np.array([1550, 660])
 
 # xy pixel boundaries for each pertinent region of the screen
@@ -77,7 +77,7 @@ def comGen(data, weights=np.array([])):
         return np.array([stat.fmean(data[:, 0], weights), stat.fmean(data[:, 1], weights)]) 
 
 # density function for PSO
-def boxCircFunc(p, data):
+def boxCircFunc(p, data, r=100):
     # INPUTS:
     # p:            Center of 100 pixel ball used to calculate density
     # data:         Array with rows of 6D data points
@@ -87,7 +87,7 @@ def boxCircFunc(p, data):
     n = len(data[:, 0])
     dispMatr = np.ones(shape=(n))[None].T @ p[None]
     newData = data-dispMatr
-    inds = np.where(np.logical_and(abs(newData[:, 0])<50, abs(newData[:, 1])<50))[0] # first partitions data within 100 by 100 box centered at p
+    inds = np.where(np.logical_and(abs(newData[:, 0])<50, abs(newData[:, 1])<100))[0] # first partitions data within 100 by 100 box centered at p
     l = len(inds)
     if l<10:
         return 99999999 # don't want to incentivize minimization of r over maximization of n
@@ -96,7 +96,7 @@ def boxCircFunc(p, data):
         p = 0
         for i in range(l):
             r2 = newData[inds[i], :] @ newData[inds[i], :]
-            if r2 < 2500: # only considers data within 50 pixels by radius
+            if r2 < r**2: # only considers data within 50 pixels by radius
                 sum = sum + r2
                 p = p + 1
         if p == 0:
@@ -105,7 +105,7 @@ def boxCircFunc(p, data):
             return sum/p**2
 
 # Performs particle swarm optimization density peak estimate within some subset of data
-def psoL2(region, data):
+def psoL2(region, data, r=100):
     # INPUTS:
     # region:       2x2 array with x bounds in first row and y bounds in second, 
     #               first column is minimums and second is maximums
@@ -113,7 +113,7 @@ def psoL2(region, data):
     # OUTPUTS:
     #               Numerical estimate of the local minimum
 
-    psoFunc = lambda p: boxCircFunc(p, data[:, 4:]) # function definition
+    psoFunc = lambda p: boxCircFunc(p, data[:, 4:], r) # function definition
     seed = random.randrange(0, sys.maxsize); random.seed(seed)
     pso = PSO(func=psoFunc, n_dim=2, pop=40, max_iter=30, lb=[region[0, 0], region[1, 0]], ub=[region[0, 1], region[1, 1]], w=0.7, c1=0.5, c2=0.5) # performs PSO fitting over omegas
     pso.run()
@@ -149,7 +149,7 @@ def regPso(data, globalReg=np.array([[0, 0], [0, 0]]), isStandard=False):
     # calculates regional Peaks
     smPeak = psoL2(newSm, smData)
     speedomPeak = psoL2(newSpeedom, speedomData)
-    rvPeak = psoL2(newRv, rvData)
+    rvPeak = psoL2(newRv, rvData, 50)
     roadPeak = psoL2(newRoad, roadData)
     panelPeak = psoL2(newPanel, panelData)
 
@@ -268,8 +268,8 @@ def rvCheck(rdPeak, rvPeak, speedomPeak, data):
     RVRD = rvPeak - rdPeak
     RVSP = rvPeak - speedomPeak
     rdCheck = (475<RVRD[0]<700 and 75<RVRD[1]<185) # checks if road to rearview vector is excessive
-    speedomCheck = (550<RVSP[0]<750 and 275<RVSP[1]<400)# checks if speedometer to rearview vector is excessive
-    isN = nCheck(rvPeak, data, 50)>30 # checks if the number of data points within 100 pixel box is greater than 30
+    speedomCheck = (550<RVSP[0]<750 and 250<RVSP[1]<400)# checks if speedometer to rearview vector is excessive
+    isN = nCheck(rvPeak, data, 50)>25 # checks if the number of data points within 100 pixel box is greater than 30
     return rdCheck and speedomCheck and isN
 
 # loads upper limit of variances for speedometer and rearview density peaks
@@ -323,7 +323,7 @@ def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.arr
     # standards:    Boolean indicating if speedometer and rearview reference points should be plotted
 
     plt.rcParams["figure.figsize"] = [19.00, 9.0]
-    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene Cropped.jpg")
+    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene (No Border).jpg")
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=[0, 1920, 0, 1080])
     plt.plot(data[:, 0], data[:, 1], 'o', mec = 'black', mew='0.8', markersize=4, color='fuchsia', label='Eye Tracking Data')
@@ -338,7 +338,6 @@ def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.arr
         for i in range(len(psoPeaks[:, 0])-1):
             plt.plot(psoPeaks[i+1, 0], psoPeaks[i+1, 1], 'd', color='limegreen', mec='black', markersize=13)
     if standards:
-        print('yes')
         plt.plot(spCenter[0], spCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0', label='Standards')
         plt.plot(rvCenter[0], rvCenter[1], 'o', color='gold', markersize=6, mec = 'black', mew='1.0')
     
