@@ -19,12 +19,7 @@ for i in range(100):
     data = pandas.read_csv(cd+ '\\' + str(dir_list[k])).to_numpy()[:, :-2]
     validData = cb.dataClean(data)
 
-    corrData, isOutlier = cb.SPRVCorr(validData)
-    cb.plotEyeData(corrData, save=False)
-    if isOutlier:
-        plt.text(1250, 900, 'Marked as Miscalibrated: True', color='w')
-    else:
-        plt.text(1250, 900, 'Marked as Miscalibrated: False', color='w')
+    cb.plotEyeData(validData[:, 4:], save=False)
     
-    plt.savefig('tests\\randSample\\saved\\' + str(dir_list[k][:-4]))
+    plt.savefig('tests\\randSample\\saved\\uncorr\\' + str(dir_list[k][:-4]))
     plt.close()
