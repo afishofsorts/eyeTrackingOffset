@@ -32,7 +32,11 @@ for i in range(len(dir_list)-2):
         cb.plotEyeData(corrData, psoPeaks=psoPeaks[2:4, :, k], standards=True, filename='', save=False, 
                         title='PSO Density Peaks for ' + str(dir_list[i+1][:-4]))
 
+<<<<<<< HEAD
         if isOutlier[k]:
+=======
+        if isOutlier[i] or calList[i, 1]=='Miscalibrated':
+>>>>>>> a4386ae35a2157fa4012a6fc80abccfb23d57197
             plt.text(1250, 900, 'Marked as Miscalibrated: True', color='w')
         else:
             plt.text(1250, 900, 'Marked as Miscalibrated: False', color='w')
@@ -41,7 +45,11 @@ for i in range(len(dir_list)-2):
         plt.close()
 
         cb.plotEyeData(corrData, filename='' + str(dir_list[i+1][:-4]), save=False)
+<<<<<<< HEAD
         if isOutlier[k]:
+=======
+        if isOutlier[k] or calList[i, 1]=='Miscalibrated':
+>>>>>>> a4386ae35a2157fa4012a6fc80abccfb23d57197
             plt.text(1250, 900, 'Marked as Miscalibrated: True', color='w')
         else:
             plt.text(1250, 900, 'Marked as Miscalibrated: False', color='w')

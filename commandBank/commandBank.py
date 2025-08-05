@@ -323,7 +323,7 @@ def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.arr
     # standards:    Boolean indicating if speedometer and rearview reference points should be plotted
 
     plt.rcParams["figure.figsize"] = [19.00, 9.0]
-    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene (No Border).jpg")
+    img = plt.imread("saved\\Primary Care Calibration\\Exemplar Scene Cropped.jpg")
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=[0, 1920, 0, 1080])
     plt.plot(data[:, 0], data[:, 1], 'o', mec = 'black', mew='0.8', markersize=4, color='fuchsia', label='Eye Tracking Data')
