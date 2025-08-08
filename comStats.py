@@ -3,9 +3,9 @@ import pandas
 import os
 from commandBank import commandBank as cb
 
-##############################################
-# GENERATES THE AVERAGE CENTER OF MASS       #
-##############################################
+################################################################
+# GENERATES THE AVERAGE CENTER OF MASS FROM GOOD MVP DATA      #
+################################################################
 
 # grabbing directory names for each manually verified file
 mvp = 'saved\\Primary Care Calibration\\Manually Validated Participants'

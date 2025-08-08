@@ -24,14 +24,17 @@ panel = np.array([[1240, 1640], [0, 270]]) # bottom right console
 comAvgs, comVars = np.load('saved\\com_stats.npy')
 
 # shifts region boundary the same amount as general COM centering to the origin and adds 2 standard deviations of padding
-def regConv(region, comAvgs):
+def regConv(region, comAvgs, isPad=False):
     # INPUTS:
     # region:       2x2 array with x bounds in first row and y bounds in second, first column is minimums
     # comAvgs:      2D array
     # OUTPUTS:
     # newReg:       2x2 array
 
-    newReg = region - (np.ones(2)[None].T @ comAvgs[None]).T
+    if isPad:  
+        newReg = region - (np.ones(2)[None].T @ comAvgs[None]).T + (np.array([-1, 1])[None].T @ np.sqrt(comVars)[None]).T
+    else:
+        newReg = region - (np.ones(2)[None].T @ comAvgs[None]).T
     return newReg
 
 # converting all regions to be relative to the average general COM centered at the origin
@@ -305,10 +308,10 @@ def SPRVCorr(data):
     # if rearview density peak isn't an outlier or lacks enough points, corrects based off of both it and speedometer
     if rvCheck(roadPeak, rvPeak, speedomPeak, rvData[:, 4:]): 
         corrX1 = meanPeakCorr(np.array([spCenter, rvCenter]), np.array([[0, 0], rvPeak-speedomPeak]), peakVars)
-        return translate(corrX1-speedomPeak-genCOM, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+        return translate(corrX1-speedomPeak-genCOM, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((speedomPeak+genCOM, roadPeak+genCOM, rvPeak+genCOM))
     else: # otherwise corrects just off of speedometer
         corr = spCenter - speedomPeak - genCOM
-        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar)
+        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((speedomPeak+genCOM, roadPeak+genCOM, rvPeak+genCOM))
 
 # Plots eye tracking data and other relevant points
 def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.array([0, 0]), dir='',title='', save=True, standards=False):

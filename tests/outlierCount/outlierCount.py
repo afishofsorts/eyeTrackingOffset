@@ -17,7 +17,7 @@ dir_list = os.listdir(mvp)
 # tags for each participant's data
 calList = pandas.read_excel(mvp + '\\Calibration List.xlsx').to_numpy()
 
-manualMiscal = np.array(['E038', 'E048', 'E059', 'E061', 'E062', 'E064', 'E068', 'E075', 'E088', 'E104', 'E109', 'E114'])
+manualMiscal = np.array(['E034', 'E038', 'E059', 'E061', 'E064', 'E075', 'E042', 'E047', 'E088', 'E105', 'E109'])
 
 # marks which data sets were makred Miscalibrated by ML algorithm with a 1
 inds = np.zeros(len(dir_list)-1)

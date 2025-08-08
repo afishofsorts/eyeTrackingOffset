@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 
 covar = np.load('saved\\pso_SPRD_covar.npy') # density peak covariance matrix
 
+print(covar)
+
 norm1 = stats.norm.rvs(size=100000)*np.sqrt(2/3*covar[0, 0]) # seperates out the x and y standard deviations
 norm2 = stats.norm.rvs(size=100000)*np.sqrt(2/3*covar[1, 1])
 
@@ -20,7 +22,7 @@ plt.xlabel('Radius (pixels)'); plt.ylabel('Frequency')
 plt.savefig('tests\\monteCarlo\\saved\\radius_hist')
 total = 0
 i = 0
-# checks at what point 99 percent of histogram is below i
+# checks at what point 95 percent of histogram is below i
 while(total < sum(counts)*0.95):
     total = total + counts[i]
     i = i + 1
