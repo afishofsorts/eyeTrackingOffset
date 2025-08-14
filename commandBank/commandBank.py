@@ -272,7 +272,7 @@ def rvCheck(rdPeak, rvPeak, speedomPeak, data):
     RVSP = rvPeak - speedomPeak
     rdCheck = (475<RVRD[0]<700 and 75<RVRD[1]<185) # checks if road to rearview vector is excessive
     speedomCheck = (550<RVSP[0]<750 and 250<RVSP[1]<400)# checks if speedometer to rearview vector is excessive
-    isN = nCheck(rvPeak, data, 50)>25 # checks if the number of data points within 100 pixel box is greater than 30
+    isN = nCheck(rvPeak, data, 50)>25 # checks if the number of data points within 100 pixel box is greater than 25
     return rdCheck and speedomCheck and isN
 
 # loads upper limit of variances for speedometer and rearview density peaks
@@ -308,10 +308,11 @@ def SPRVCorr(data):
     # if rearview density peak isn't an outlier or lacks enough points, corrects based off of both it and speedometer
     if rvCheck(roadPeak, rvPeak, speedomPeak, rvData[:, 4:]): 
         corrX1 = meanPeakCorr(np.array([spCenter, rvCenter]), np.array([[0, 0], rvPeak-speedomPeak]), peakVars)
-        return translate(corrX1-speedomPeak-genCOM, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((speedomPeak+genCOM, roadPeak+genCOM, rvPeak+genCOM))
+        corr = corrX1-speedomPeak-genCOM
+        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((genCOM+corr, speedomPeak+genCOM+corr, roadPeak+genCOM+corr, rvPeak+genCOM+corr))
     else: # otherwise corrects just off of speedometer
         corr = spCenter - speedomPeak - genCOM
-        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((speedomPeak+genCOM, roadPeak+genCOM, rvPeak+genCOM))
+        return translate(corr, data[:, 4:]), isOutlier(roadPeak-speedomPeak, mean, covar), np.stack((genCOM+corr, speedomPeak+genCOM+corr, roadPeak+genCOM+corr, rvPeak+genCOM+corr))
 
 # Plots eye tracking data and other relevant points
 def plotEyeData(data, filename='image', genCOM=np.array([0, 0]), psoPeaks=np.array([0, 0]), dir='',title='', save=True, standards=False):

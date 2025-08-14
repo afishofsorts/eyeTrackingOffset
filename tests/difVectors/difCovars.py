@@ -31,6 +31,7 @@ n = int(sum(inds)-len(manualMiscal))
 RVSPdifs = np.zeros((n, 2))
 RVRDdifs = np.zeros((n, 2))
 SPRDdifs = np.zeros((n, 2))
+# calculated difference vectors
 k=0 
 for i in range(len(dir_list)-1):
     misInds = np.where(manualMiscal == dir_list[i+1][:-4])[0]
@@ -43,6 +44,7 @@ for i in range(len(dir_list)-1):
 
         k = k + 1
 
+# saves covariances
 np.save('saved\\pso_RVSP_covar', np.cov(RVSPdifs.T))
 np.save('saved\\pso_RVRD_covar', np.cov(RVRDdifs.T))
 np.save('saved\\pso_SPRD_covar', np.cov(SPRDdifs.T))
