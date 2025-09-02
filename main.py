@@ -13,7 +13,7 @@ dir_list = os.listdir(rootDir) # grabs list of file names
 
 isOutlier = np.empty(len(dir_list))
 for i in range(len(dir_list)):
-    data = pandas.read_csv(rootDir + '\\' + str(dir_list[i])).to_numpy()
+    data = pandas.read_csv(rootDir + '\\' + str(dir_list[i])).to_numpy()[:, :-2]
     
     data[:, 4:], isOutlier[i], peaks = cb.SPRVCorr(data) # corrects offset data using rearview and speedometer density peaks
 
